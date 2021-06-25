@@ -11,18 +11,18 @@ from flask import Flask, jsonify
 
 
 #################################################
-# Database Setup
+#DATABASE SETUP
 #################################################
 
 engine = create_engine("sqlite:///hawaii.sqlite")
 
-#reflect existing database into new model
+#REFLECT DATABASE INTO NEW MODEL
 Base = automap_base()
 
-#reflect tables
+#REFLECT TABLES
 Base.prepare(engine, reflect=True)
 
-#Save references to tables
+#SAVE REFERENCES TO TABLES
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
@@ -35,7 +35,7 @@ session = Session(engine)
 app = Flask(__name__)
 
 #################################################
-# DISPLAY ROUTES
+#DISPLAY ROUTES
 #################################################
 
 @app.route("/")
@@ -53,14 +53,14 @@ def welcome():
 @app.route("/api/v1.0/precipitation")
 def precipitation():
     """precipitation data for the last year."""
-    # Calculate the date 1 year ago from last date in database
+    #CALCULATE DATE
     year_prior = dt.date(2017, 8, 23) - dt.timedelta(days=365)
 
-    # Query for the date and precipitation for the last year
+    #QUERY FOR DATE AND PRECIP FOR LAST YEAR
     precipitation = session.query(Measurement.date, Measurement.prcp).\
         filter(Measurement.date >= year_prior).all()
 
-    # Dict with date as the key and prcp as the value
+    #DICTIONARE DATE/KEY PRECIPITATION/VALUE
     precip = {date: prcp for date, prcp in precipitation}
     return jsonify(precip)
 
@@ -70,7 +70,6 @@ def stations():
     """List stations."""
     result = session.query(Station.station).all()
 
-    # Unravel result into a 1D array and convert to a list
     stations = list(np.ravel(result))
     return jsonify(stations=stations)
 
@@ -78,18 +77,18 @@ def stations():
 @app.route("/api/v1.0/tobs")
 def temp_monthly():
     """(tobs) for year prior."""
-    # Calculate the date 1 year ago from last date in database
+    #CALCULATE DATE
     year_prior = dt.date(2017, 8, 23) - dt.timedelta(days=365)
 
-    # Query the primary station for all tobs from the last year
+    #QUERY PRIMARY STATION
     result = session.query(Measurement.tobs).\
         filter(Measurement.station == 'USC00519281').\
         filter(Measurement.date >= year_prior).all()
 
-    # Unravel result into a 1D array and convert to a list
+    #UNRAVEL
     temperatures = list(np.ravel(result))
 
-    # Return the result
+    #RETURN
     return jsonify(temperatures=temperatures)
 
 
@@ -98,7 +97,7 @@ def temp_monthly():
 def stats(start=None, end=None):
     """Return TMIN, TAVG, TMAX."""
 
-    # Select statement
+    #SELECT STATEMENT
     sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
 
     if not end:
@@ -109,11 +108,11 @@ def stats(start=None, end=None):
         temperatures = list(np.ravel(result))
         return jsonify(temperatures)
 
-    # calculate TMIN, TAVG, TMAX 
+    #CALCULATE TMIN, TAVG, TMAX 
     result = session.query(*sel).\
         filter(Measurement.date >= start).\
         filter(Measurement.date <= end).all()
-    # Unravel into 1D array and convert to list
+    #UNRAVEL 
     temperatures = list(np.ravel(result))
     return jsonify(temperatures=temperatures)
 
